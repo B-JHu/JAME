@@ -1,0 +1,5 @@
+This file lists where the .css files in this folder originate from - with their respective licenses:
+(NOTE: Most files have been modified from their original form seen in the links below to either a) make them compatible with the HTML produced by my renderer and/or b) to make them more compact)
+
+github-markdown.css: https://github.com/sindresorhus/github-markdown-css; licensed under the MIT license (see https://github.com/sindresorhus/github-markdown-css/blob/main/license for details)
+foghorn.css: https://github.com/jasonm23/markdown-css-themes; no license given (license of a Copyleft-nature is implied through the README.md)

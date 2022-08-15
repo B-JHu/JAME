@@ -1,0 +1,8 @@
+__pycache__
+.qt_for_python
+build
+dist
+
+layout.ui
+test_results.txt
+libs/test.py
