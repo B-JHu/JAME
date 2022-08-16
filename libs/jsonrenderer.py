@@ -237,10 +237,10 @@ def linebreak(linebreak_node: Node, debug: bool):
         "node_type": "linebreak"
     }
 
-def code(inline_code_node: Node, debug: bool):
+def inline_code(inline_code_node: Node, debug: bool):
     return {
         "node_type": "inline_code",
-        "content": inline_code_node.content
+        "content": inline_code_node.raw_content
     }
 
 def emphasis(emphasis_node: Node, debug: bool):
@@ -328,7 +328,7 @@ ASSOCIATED_FUNCTION = {
     NodeType.TEXT: text,
     NodeType.SOFTBREAK: softbreak,
     NodeType.LINEBREAK: linebreak,
-    NodeType.CODE: code,
+    NodeType.INLINE_CODE: inline_code,
     NodeType.EMPHASIS: emphasis,
     NodeType.STRONG: strong,
     NodeType.LINK: link,

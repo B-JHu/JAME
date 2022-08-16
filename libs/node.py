@@ -20,7 +20,7 @@ class NodeType(Enum):
     TEXT = 10
     SOFTBREAK = 11
     LINEBREAK = 12
-    CODE = 13
+    INLINE_CODE = 13
     EMPHASIS = 14
     STRONG = 15
     LINK = 16

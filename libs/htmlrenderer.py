@@ -72,8 +72,8 @@ def softbreak(softbreak_node: Node):
 def linebreak(linebreak_node: Node):
     return "<br/>"
 
-def code(code_node: Node):
-    return f"<code>{code_node.raw_content}</code>"
+def inline_code(inline_code_node: Node):
+    return f"<code>{inline_code_node.raw_content}</code>"
 
 def emphasis(emphasis_node: Node):
     output = "<em>"
@@ -150,7 +150,7 @@ ASSOCIATED_FUNCTION = {
     NodeType.TEXT: text,
     NodeType.SOFTBREAK: softbreak,
     NodeType.LINEBREAK: linebreak,
-    NodeType.CODE: code,
+    NodeType.INLINE_CODE: inline_code,
     NodeType.EMPHASIS: emphasis,
     NodeType.STRONG: strong,
     NodeType.LINK: link,

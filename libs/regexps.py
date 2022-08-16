@@ -17,7 +17,7 @@ ATX_HEADING_OPT_CLOSING_SEQ = '[' + SPACE + TAB + ']+\#+[' + SPACE + TAB + ']*'
 SETEXT_HEADING_UNDERLINE = '^' + SPACE + '{0,3}(\=+|\-{2,})[' + SPACE + TAB + ']*'
 
 INDENTED_CODE_BLOCK = '^(' + SPACE + '{4}|' + TAB + ')'
-FENCED_CODE_BLOCK_BEGINNING = '^' + SPACE + '{0,3}(\`{3,}[^\`]*|\~{3,}.*)'
+FENCED_CODE_BLOCK_BEGINNING = '^' + SPACE + '{0,3}(\`{3,}(?!.*`)|\~{3,}.*)'
 FENCED_CODE_BLOCK_ENDING = '^' + SPACE + '{0,3}(\`|\~){3,}[' + SPACE + TAB + ']*'
 
 ## sec. 4.6: HTML blocks

@@ -151,6 +151,53 @@ def parseInlines(root_block: Node, raw_content: str, link_reference_defs: list[L
             current_char_index += re.match(CDATA_SECTION, raw_content_from_index).end()
             raw_content_from_index = root_block.raw_content[current_char_index:]
 
+        elif re.match(BACKTICK_STRING, raw_content_from_index):
+            root_block.getDeepestOpenChild().open = False
+
+            delimiter_length = len(re.match(BACKTICK_STRING, raw_content_from_index).group())
+            raw_code = ""
+
+            matching_closer_found = False
+            starting_index = current_char_index
+
+            current_char_index += delimiter_length
+            raw_content_from_index = root_block.raw_content[current_char_index:]
+
+            while not current_char_index >= len(root_block.raw_content):
+                if re.match(BACKTICK_STRING, raw_content_from_index):
+                    if len(re.match(BACKTICK_STRING, raw_content_from_index).group()) == delimiter_length:
+                        matching_closer_found = True
+                        break
+                    else: # We have found a delimiter string; however, it does not match the length requirement: hence append it at once so the parser does not get confused and tries to parse this string "one by one"
+                        raw_code += re.match(BACKTICK_STRING, raw_content_from_index).group()
+                        current_char_index += len(re.match(BACKTICK_STRING, raw_content_from_index).group())
+                        raw_content_from_index = root_block.raw_content[current_char_index:]
+                if not current_char_index >= len(root_block.raw_content): # No, this test is not redundant, as the else block above can result in advancing the parser state such that current_char_index >= len(root_block.raw_content) is true and consequently throwing an IndexError
+                    raw_code += raw_content_from_index[0]
+                    current_char_index += 1
+                    raw_content_from_index = root_block.raw_content[current_char_index:]
+
+            if matching_closer_found:
+                raw_code = re.sub(LINE_ENDING, " ", raw_code)
+
+                if raw_code[0] == " " and raw_code[-1] == " " and not re.match("^[ ]+$", raw_code):
+                    raw_code = raw_code[1:-1]
+
+                new_node = Node(root_block, NodeType.INLINE_CODE, raw_code)
+                new_node.open = False
+            
+                current_char_index += delimiter_length
+                raw_content_from_index = root_block.raw_content[current_char_index:]
+            else: # We have not found a matching closer until the end of the block; hence we append literal backticks to the root block
+                current_char_index = starting_index
+                raw_content_from_index = root_block.raw_content[current_char_index:]
+
+                new_node = Node(root_block, NodeType.TEXT)
+                new_node.content = "`" * delimiter_length
+                new_node.open = False
+
+                current_char_index += delimiter_length
+                raw_content_from_index = root_block.raw_content[current_char_index:]
         elif re.match(LINE_ENDING, raw_content_from_index):
             root_block.getDeepestOpenChild().open = False
 
