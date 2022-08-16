@@ -20,8 +20,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_mainWindow):
         self.ast = None
 
         self.STYLESHEET_PATHS = {
-            "GitHub": os.getcwd() + "/stylesheets/github-markdown.css",
-            "Foghorn": os.getcwd() + "/stylesheets/foghorn.css"
+            "GitHub": os.path.join(os.getcwd(), "stylesheets", "github-markdown.css"),
+            "Foghorn": os.path.join(os.getcwd(), "stylesheets", "foghorn.css")
         }
 
         self.textEdit.textChanged.connect(self.handleInputChange)
