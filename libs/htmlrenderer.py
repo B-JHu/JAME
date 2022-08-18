@@ -112,28 +112,8 @@ def image(image_node: LinkOrImageNode):
         return f"<img src=\"{image_node.link_destination}\" alt=\"{alt_text}\" title=\"{image_node.title}\" />"
     return f"<img src=\"{image_node.link_destination}\" alt=\"{alt_text}\" />"
 
-def html_inline(html_inline_node: HTMLInlineNode):
-    match html_inline_node.type: # TODO: implement attributes once attribute parsing has been implemented
-        case HTMLInlineType.OPEN_TAG:
-            return f"<{html_inline_node.tag_name}>"
-        
-        case HTMLInlineType.CLOSING_TAG:
-            return f"<{html_inline_node.tag_name}/>"
-
-        case HTMLInlineType.HTML_COMMENT:
-            return f"<!--{html_inline_node.raw_content.lstrip()}-->"
-
-        case HTMLInlineType.PROCESSING_INSTRUCTION:
-            return f"<?{html_inline_node.raw_content}?>"
-
-        case HTMLInlineType.DECLARATION:
-            return f"<!{html_inline_node.tag_name} {html_inline_node.raw_content}>"
-
-        case HTMLInlineType.CDATA_SECTION:
-            return f"<![CDATA[{html_inline_node.raw_content}]]>"
-
-        case _:
-            raise ValueError(f"HTML inline node does not have an appropriate type: {html_inline_node.type}")
+def html_inline(html_inline_node: Node):
+    return f"{html_inline_node.raw_content}"
 
 ASSOCIATED_FUNCTION = {
     NodeType.BLOCK_QUOTE: block_quote,

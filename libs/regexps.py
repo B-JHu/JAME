@@ -21,41 +21,43 @@ FENCED_CODE_BLOCK_BEGINNING = '^' + SPACE + '{0,3}(\`{3,}(?!.*`)|\~{3,}.*)'
 FENCED_CODE_BLOCK_ENDING = '^' + SPACE + '{0,3}(\`|\~){3,}[' + SPACE + TAB + ']*'
 
 ## sec. 4.6: HTML blocks
-BLOCK_1_START = '^\<(pre|script|style|textarea)(' + SPACE + '|' + TAB + '|\>|' + LINE_ENDING + ')'
-BLOCK_1_END = '\<(pre|script|style|textarea)\>'
+BLOCK_1_START = '^[ ]{0,3}<(pre|script|style|textarea)(' + SPACE + '|' + TAB + '|\>|' + LINE_ENDING + ')'
+BLOCK_1_END = '</(pre|script|style|textarea)>'
 
-BLOCK_2_START = '^\<\!\-\-'
-BLOCK_2_END = '\-\-\>'
+BLOCK_2_START = '^[ ]{0,3}<!--'
+BLOCK_2_END = '-->'
 
-BLOCK_3_START = '^\<\?'
-BLOCK_3_END = '\?\>'
+BLOCK_3_START = '^[ ]{0,3}<\?'
+BLOCK_3_END = '\?>'
 
-BLOCK_4_START = '^\<\![A-Za-z]'
-BLOCK_4_END = '\>'
+BLOCK_4_START = '^[ ]{0,3}<![A-Za-z]'
+BLOCK_4_END = '>'
 
-BLOCK_5_START = '^\<\!\[CDATA\['
-BLOCK_5_END = '\]\]\>'
+BLOCK_5_START = '^[ ]{0,3}<!\[CDATA\['
+BLOCK_5_END = '\]\]>'
 
-BLOCK_6_START = '^\<\/?(address|article|aside|base|basefont|blockquote|body|caption|center|col|colgroup|dd|details|dialog|dir|div|dl|dt|fieldset|figcaption|figure|footer|form|frame|frameset|h[1-6]|head|header|hr|html|iframe|legend|li|link|main|menu|menuitem|nav|noframes|ol|optgroup|option|p|param|section|source|summary|table|tbody|td|tfoot|th|thead|title|tr|track|ul)(' + SPACE + '|' + TAB + '|' + LINE_ENDING + '|\>|\/\>)'
+BLOCK_6_START = '^[ ]{0,3}<\/?(address|article|aside|base|basefont|blockquote|body|caption|center|col|colgroup|dd|details|dialog|dir|div|dl|dt|fieldset|figcaption|figure|footer|form|frame|frameset|h[1-6]|head|header|hr|html|iframe|legend|li|link|main|menu|menuitem|nav|noframes|ol|optgroup|option|p|param|section|source|summary|table|tbody|td|tfoot|th|thead|title|tr|track|ul)(' + SPACE + '|' + TAB + '|' + LINE_ENDING + '|\>|\/\>)'
 BLOCK_6_END = BLANK_LINE
 
 # from sec. 6.6, because jumps in a spec sheet are somehow OK?
 TAG_NAME = '[A-Za-z][A-Za-z0-9\-]*'
 
 ATTRIBUTE_NAME = '[A-Za-z\_\:][A-Za-z0-9\_\.\:\-]*'
-UNQUOTED_ATTR_VALUE = '[^' + SPACE + TAB + LINE_ENDING + '\"\'\=\<\>\`]+'
+UNQUOTED_ATTR_VALUE = '[^\s\"\'\=\<\>\`]+'
 SINGLE_QUOT_ATTR_VALUE = '\'[^\']*\''
-DOUBLE_QUOT_ATTR_VALUE = '\"[^\"]\"'
-ATTRIBUTE_VALUE = '(' + UNQUOTED_ATTR_VALUE + "|" +  SINGLE_QUOT_ATTR_VALUE + "|" + DOUBLE_QUOT_ATTR_VALUE + ')'
-ATTRIBUTE_VALUE_SPEC = '[' + SPACE + TAB + ']*' + LINE_ENDING + '?\=[' + SPACE + TAB + ']*' + LINE_ENDING + '?' + ATTRIBUTE_VALUE
+DOUBLE_QUOT_ATTR_VALUE = '\"[^\"]*\"'
+ATTRIBUTE_VALUE = '(?:' + UNQUOTED_ATTR_VALUE + "|" +  SINGLE_QUOT_ATTR_VALUE + "|" + DOUBLE_QUOT_ATTR_VALUE + ')'
 
-ATTRIBUTE = '[' + SPACE + TAB + ']*' + LINE_ENDING + '?' + ATTRIBUTE_NAME + '(' + ATTRIBUTE_VALUE_SPEC + ')?'
+ATTRIBUTE_VALUE_SPEC = '(?:[' + SPACE + TAB + ']*' + LINE_ENDING + '?\=[' + SPACE + TAB + ']*' + LINE_ENDING + '?' + ATTRIBUTE_VALUE + ')'
 
-OPEN_TAG = '\<' + TAG_NAME + '(' + ATTRIBUTE + ')*[' + SPACE + TAB + ']*' + LINE_ENDING + '?\/?\>'
+ATTRIBUTE = '(?:[' + SPACE + TAB + ']+' + LINE_ENDING + '?' + ATTRIBUTE_NAME  + ATTRIBUTE_VALUE_SPEC + '?)'
+
+OPEN_TAG = '\<' + TAG_NAME + ATTRIBUTE + '*[' + SPACE + TAB + ']*' + LINE_ENDING + '?\/?\>'
 CLOSING_TAG = '\<\/' + TAG_NAME + '[' + SPACE + TAB + ']*' + LINE_ENDING + '?\>'
+
 # END stuff from sec. 6.6
 
-BLOCK_7_START = '(' + OPEN_TAG + '|' + CLOSING_TAG + ')[' + SPACE + TAB + ']*' + LINE_ENDING
+BLOCK_7_START = '^[ ]{0,3}(' + OPEN_TAG + '|' + CLOSING_TAG + ')[' + SPACE + TAB + ']*$'
 BLOCK_7_END = BLANK_LINE
 # END sec. 4.6
 
@@ -87,7 +89,7 @@ EMAIL_ADDRESS = r"[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,
 EMAIL_AUTOLINK = r'\<' + EMAIL_ADDRESS + r'\>'
 
 # The rest from sec. 6.6
-HTML_COMMENT = r'\<\!\-\-[^(\-\-)]*\-\-\>'
+HTML_COMMENT = r'<!---->|<!--(?:-?[^>-])(?:-?[^-])*-->'
 PROCESSING_INSTRUCTION = r'\<\?[^(\?\>)]+\?\>'
 DECLARATION = r'\<\![A-Za-z][^\>]*\>'
 CDATA_SECTION = r'\<\!\[CDATA\[(?!]]>).*\]\]\>'

@@ -91,61 +91,52 @@ def parseInlines(root_block: Node, raw_content: str, link_reference_defs: list[L
         elif re.match(OPEN_TAG, raw_content_from_index):
             root_block.getDeepestOpenChild().open = False
 
-            # TODO: attribute matching
-            tag_name = re.match(TAG_NAME, raw_content_from_index[1:]).group() # remove the opening "<", then parse it as the name
-
-            new_node = HTMLInlineNode(root_block, HTMLInlineType.OPEN_TAG, tag_name)
+            new_node = Node(root_block, NodeType.HTML_INLINE, re.match(OPEN_TAG, raw_content_from_index).group())
             new_node.open = False
 
             current_char_index += re.match(OPEN_TAG, raw_content_from_index).end()
             raw_content_from_index = root_block.raw_content[current_char_index:]
+
         elif re.match(CLOSING_TAG, raw_content_from_index):
             root_block.getDeepestOpenChild().open = False
-            
-            # TODO: attribute matching
-            tag_name = re.match(TAG_NAME, raw_content_from_index[2:]).group() # same as above
 
-            new_node = HTMLInlineNode(root_block, HTMLInlineType.CLOSING_TAG, tag_name)
+            new_node = Node(root_block, NodeType.HTML_INLINE, re.match(CLOSING_TAG, raw_content_from_index).group())
             new_node.open = False
 
             current_char_index += re.match(CLOSING_TAG, raw_content_from_index).end()
             raw_content_from_index = root_block.raw_content[current_char_index:]
+            
         elif re.match(HTML_COMMENT, raw_content_from_index):
             root_block.getDeepestOpenChild().open = False
 
-            comment_text = re.match(HTML_COMMENT, raw_content_from_index).group()[4:-3]
-
-            new_node = HTMLInlineNode(root_block, HTMLInlineType.HTML_COMMENT, "", comment_text)
+            new_node = Node(root_block, NodeType.HTML_INLINE, re.match(HTML_COMMENT, raw_content_from_index).group())
             new_node.open = False
 
             current_char_index += re.match(HTML_COMMENT, raw_content_from_index).end()
             raw_content_from_index = root_block.raw_content[current_char_index:]
+
         elif re.match(PROCESSING_INSTRUCTION, raw_content_from_index):
             root_block.getDeepestOpenChild().open = False
 
-            instruction_text = re.match(PROCESSING_INSTRUCTION, raw_content_from_index).group()[2:-2]
-
-            new_node = HTMLInlineNode(root_block, HTMLInlineType.PROCESSING_INSTRUCTION, "", instruction_text)
+            new_node = Node(root_block, NodeType.HTML_INLINE, re.match(PROCESSING_INSTRUCTION, raw_content_from_index).group())
             new_node.open = False
 
             current_char_index += re.match(PROCESSING_INSTRUCTION, raw_content_from_index).end()
             raw_content_from_index = root_block.raw_content[current_char_index:]
+
         elif re.match(DECLARATION, raw_content_from_index):
             root_block.getDeepestOpenChild().open = False
 
-            declaration_text = re.match(DECLARATION, raw_content_from_index).group()[2:-1]
-
-            new_node = HTMLInlineNode(root_block, HTMLInlineType.DECLARATION, "", declaration_text)
+            new_node = Node(root_block, NodeType.HTML_INLINE, re.match(DECLARATION, raw_content_from_index).group())
             new_node.open = False
 
             current_char_index += re.match(DECLARATION, raw_content_from_index).end()
             raw_content_from_index = root_block.raw_content[current_char_index:]
+
         elif re.match(CDATA_SECTION, raw_content_from_index):
             root_block.getDeepestOpenChild().open = False
 
-            cdata_text = re.match(CDATA_SECTION, raw_content_from_index).group()[9:-3]
-
-            new_node = HTMLInlineNode(root_block, HTMLInlineType.CDATA_SECTION, "", cdata_text)
+            new_node = Node(root_block, NodeType.HTML_INLINE, re.match(CDATA_SECTION, raw_content_from_index).group())
             new_node.open = False
 
             current_char_index += re.match(CDATA_SECTION, raw_content_from_index).end()
