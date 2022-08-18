@@ -360,9 +360,8 @@ def process_emphasis(block_node_to_modify: Node, delimiter_stack: list[Delimiter
             elif tmp_index > delimiter_stack.index(openers_bottom_underscore):
                 matching_opener = tmp
 
-
         if matching_opener: # we have found a potential opener
-            if not matching_opener.referenced_text_node in block_node_to_modify.children: # it is possible that the matching opener is not actually a delimiter for emphasis, but rather raw textual context of another emphasis; see sec. 6.2, rule #15 for an example of this
+            if (not matching_opener.referenced_text_node in block_node_to_modify.children) or (not current_position.referenced_text_node in block_node_to_modify.children): # it is possible that the matching opener is not actually a delimiter for emphasis, but rather raw textual context of another emphasis; see sec. 6.2, rule #15 for an example of this; also, the "emphasis delimiter" could be inside a link (or link reference definition), which leads to it not being an actual delimiter
                     break
             if matching_opener.delimiter_count >= 2 and current_position.delimiter_count >= 2:
                 opener_text_node_index = block_node_to_modify.children.index(matching_opener.referenced_text_node)

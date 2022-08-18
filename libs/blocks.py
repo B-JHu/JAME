@@ -35,7 +35,7 @@ def canRemainOpen(block: Node, line: str):
                 return False
             if re.search(BULLET_LIST_MARKER, line.lstrip()) or re.search(ORDERED_LIST_MARKER, line.lstrip()): # lists may interrupt a paragraph
                 return False
-            if re.search(BLOCK_1_START, line) or re.search(BLOCK_2_START, line) or re.search(BLOCK_3_START, line) or re.search(BLOCK_4_START, line) or re.search(BLOCK_5_START, line) or re.search(BLOCK_6_START, line): # sec. 4.6: "An HTML block of types 1–6 can interrupt a paragraph"
+            if re.search(re.compile(BLOCK_1_START, re.IGNORECASE), line) or re.search(BLOCK_2_START, line) or re.search(BLOCK_3_START, line) or re.search(BLOCK_4_START, line) or re.search(BLOCK_5_START, line) or re.search(BLOCK_6_START, line): # sec. 4.6: "An HTML block of types 1–6 can interrupt a paragraph"
                 return False
             return True
 
@@ -56,7 +56,7 @@ def canRemainOpen(block: Node, line: str):
                 return True
             elif block.block_type == 5 and not re.search(BLOCK_5_END, line):
                 return True
-            elif block.block_type == 6 and not re.search(BLOCK_6_END, line):
+            elif block.block_type == 6 and not re.search(re.compile(BLOCK_6_END, re.IGNORECASE), line):
                 return True
             elif block.block_type == 7 and not re.search(BLOCK_7_END, line):
                 return True
@@ -171,28 +171,27 @@ def openBlock(document: Node, line: str, deepest_open_child: Node = None):
     elif re.search(BLOCK_2_START, line):
         new_node = HTMLBlockNode(document, 2, line)
 
-        if re.search(re.compile(BLOCK_2_END, re.IGNORECASE), line):
+        if re.search(BLOCK_2_END, line):
             new_node.open = False
     elif re.search(BLOCK_3_START, line):
         new_node = HTMLBlockNode(document, 3, line)
 
-        if re.search(re.compile(BLOCK_3_END, re.IGNORECASE), line):
+        if re.search(BLOCK_3_END, line):
             new_node.open = False
     elif re.search(BLOCK_4_START, line):
         new_node = HTMLBlockNode(document, 4, line)
 
-        if re.search(re.compile(BLOCK_4_END, re.IGNORECASE), line):
+        if re.search(BLOCK_4_END, line):
             new_node.open = False
     elif re.search(BLOCK_5_START, line):
         new_node = HTMLBlockNode(document, 5, line)
 
-        if re.search(re.compile(BLOCK_5_END, re.IGNORECASE), line):
+        if re.search(BLOCK_5_END, line):
             new_node.open = False
     elif re.search(re.compile(BLOCK_6_START, re.IGNORECASE), line):
         new_node = HTMLBlockNode(document, 6, line)
 
-        if re.search(re.compile(BLOCK_6_END, re.IGNORECASE), line):
-            new_node.open = False
+        # block 6 cannot be closed on the same line it is opened as its closing condition is a blank line
     elif re.search(BLOCK_7_START, line):
         new_node = HTMLBlockNode(document, 7, line)
 
