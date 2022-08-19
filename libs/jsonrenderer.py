@@ -93,78 +93,15 @@ def thematic_break(thematic_break_node: Node, debug: bool): # yes, "debug" is un
 
 def html_block(html_block_node: HTMLBlockNode, debug: bool):
     if debug:
-        if html_block_node.block_type == 2:
-            return {
-                "node_type": "html_block",
-                "open": html_block_node.open,
-                "block_type": "comment",
-                "content": html_block_node.raw_content,
-                "raw_content": html_block_node.raw_content,
-            }
-        if html_block_node.block_type == 3:
-            return {
-                "node_type": "html_block",
-                "open": html_block_node.open,
-                "block_type": "processing_instruction",
-                "content": html_block_node.raw_content,
-                "raw_content": html_block_node.raw_content,
-            }
-        if html_block_node.block_type == 4:
-            return {
-                "node_type": "html_block",
-                "open": html_block_node.open,
-                "block_type": "declaration",
-                "content": html_block_node.raw_content,
-                "raw_content": html_block_node.raw_content,
-            }
-        if html_block_node.block_type == 5:
-            return {
-                "node_type": "html_block",
-                "open": html_block_node.open,
-                "block_type": "CDATA section",
-                "content": html_block_node.raw_content,
-                "raw_content": html_block_node.raw_content,
-            }
         return {
             "node_type": "html_block",
             "open": html_block_node.open,
-            "tag_name": html_block_node.tag_name,
-            "attributes": html_block_node.attributes,
-            "content": html_block_node.raw_content,
-            "raw_content": html_block_node.raw_content,
-        }
-    if html_block_node.block_type == 2:
-        return {
-            "node_type": "html_block",
-            "block_type": "comment",
-            "content": html_block_node.raw_content,
-        }
-    if html_block_node.block_type == 3:
-        return {
-            "node_type": "html_block",
-            "block_type": "processing_instruction",
-            "content": html_block_node.raw_content,
-        }
-    if html_block_node.block_type == 4:
-        return {
-            "node_type": "html_block",
-            "block_type": "declaration",
-            "content": html_block_node.raw_content,
-        }
-    if html_block_node.block_type == 5:
-        return {
-            "node_type": "html_block",
-            "block_type": "CDATA section",
-            "content": html_block_node.raw_content,
+            "content": html_block_node.raw_content
         }
     return {
         "node_type": "html_block",
-        "tag_name": html_block_node.tag_name,
-        "attributes": html_block_node.attributes,
-        "content": html_block_node.raw_content,
-    }
-
-    
+        "content": html_block_node.raw_content
+    } 
 
 def list(list_node: ListNode, debug: bool):
     if debug:
@@ -237,10 +174,10 @@ def linebreak(linebreak_node: Node, debug: bool):
         "node_type": "linebreak"
     }
 
-def code(inline_code_node: Node, debug: bool):
+def inline_code(inline_code_node: Node, debug: bool):
     return {
         "node_type": "inline_code",
-        "content": inline_code_node.content
+        "content": inline_code_node.raw_content
     }
 
 def emphasis(emphasis_node: Node, debug: bool):
@@ -273,43 +210,10 @@ def image(image_node: LinkOrImageNode, debug: bool):
         "children": []
     }
 
-def html_inline(html_inline_node: HTMLInlineNode, debug: bool):
-    if html_inline_node.type == HTMLInlineType.HTML_COMMENT:
-        return {
-            "node_type": "html_inline",
-            "type": "html_comment",
-            "content": html_inline_node.raw_content
-        }
-    elif html_inline_node.type == HTMLInlineType.PROCESSING_INSTRUCTION:
-        return {
-            "node_type": "html_inline",
-            "type": "processing_instruction",
-            "content": html_inline_node.raw_content
-        }
-    elif html_inline_node.type == HTMLInlineType.DECLARATION:
-        return {
-            "node_type": "html_inline",
-            "type": "declaration",
-            "content": html_inline_node.raw_content
-        }
-    elif html_inline_node.type == HTMLInlineType.CDATA_SECTION:
-        return {
-            "node_type": "html_inline",
-            "type": "cdata_section",
-            "content": html_inline_node.raw_content
-        }
-    elif html_inline_node.type == HTMLInlineType.OPEN_TAG:
-        return {
-            "node_type": "html_inline",
-            "type": "open_tag",
-            "tag_name": html_inline_node.tag_name,
-            "attributes": html_inline_node.attributes
-        }
+def html_inline(html_inline_node: Node, debug: bool):
     return {
         "node_type": "html_inline",
-        "type": "closing_tag",
-        "tag_name": html_inline_node.tag_name,
-        "attributes": html_inline_node.attributes
+        "content": html_inline_node.raw_content
     }
 
 # -----
@@ -328,7 +232,7 @@ ASSOCIATED_FUNCTION = {
     NodeType.TEXT: text,
     NodeType.SOFTBREAK: softbreak,
     NodeType.LINEBREAK: linebreak,
-    NodeType.CODE: code,
+    NodeType.INLINE_CODE: inline_code,
     NodeType.EMPHASIS: emphasis,
     NodeType.STRONG: strong,
     NodeType.LINK: link,

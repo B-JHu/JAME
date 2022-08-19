@@ -18,7 +18,10 @@ def parseBlocks(document: Node, line: str, link_reference_defs: list[LinkReferen
         pass
     elif not deepest_open_child.node_type == NodeType.DOCUMENT: # no lazy continuation, but still an open block
         if canRemainOpen(deepest_open_child, line):
-            deepest_open_child.addLine(line)
+            if deepest_open_child.node_type == NodeType.HTML_BLOCK and deepest_open_child.parent.node_type in [NodeType.BLOCK_QUOTE, NodeType.LIST, NodeType.LIST_ITEM]: # if we have an open HTML within a container block, we need to remove the blockquote or list item marker
+                deepest_open_child.addLine(removePossibleMarkers(line))
+            else:
+                deepest_open_child.addLine(line)
 
             if deepest_open_child.node_type == NodeType.LIST_ITEM:             
                 openBlock(deepest_open_child, line[deepest_open_child.continuation_indent:], deepest_open_child)
@@ -26,6 +29,10 @@ def parseBlocks(document: Node, line: str, link_reference_defs: list[LinkReferen
             while not canRemainOpen(deepest_open_child, line): # back up to the deepest block that *can* remain open
                 if deepest_open_child.node_type == NodeType.PARAGRAPH: # if we are about to close a paragraph, parse all link reference defs for later use
                     parseLinkReferenceDefs(deepest_open_child, link_reference_defs)
+                elif deepest_open_child.node_type == NodeType.HTML_BLOCK and not deepest_open_child.block_type == 7: # the closing tag of the HTML block needs to be included in the block
+                    deepest_open_child.raw_content += line
+                    deepest_open_child.open = False
+                    return # However, this means that the line cannot include any other relevant tokens; hence stop block parsing for this line here
 
                 deepest_open_child.open = False
                 deepest_open_child = document.getDeepestOpenChild()

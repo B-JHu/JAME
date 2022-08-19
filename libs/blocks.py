@@ -35,6 +35,8 @@ def canRemainOpen(block: Node, line: str):
                 return False
             if re.search(BULLET_LIST_MARKER, line.lstrip()) or re.search(ORDERED_LIST_MARKER, line.lstrip()): # lists may interrupt a paragraph
                 return False
+            if re.search(re.compile(BLOCK_1_START, re.IGNORECASE), line) or re.search(BLOCK_2_START, line) or re.search(BLOCK_3_START, line) or re.search(BLOCK_4_START, line) or re.search(BLOCK_5_START, line) or re.search(BLOCK_6_START, line): # sec. 4.6: "An HTML block of types 1–6 can interrupt a paragraph"
+                return False
             return True
 
         case NodeType.HEADING:
@@ -44,7 +46,7 @@ def canRemainOpen(block: Node, line: str):
             return False
 
         case NodeType.HTML_BLOCK:
-            if block.block_type == 1 and not re.search(BLOCK_1_END, line):
+            if block.block_type == 1 and not re.search(re.compile(BLOCK_1_END, re.IGNORECASE), line):
                 return True
             elif block.block_type == 2 and not re.search(BLOCK_2_END, line):
                 return True
@@ -54,7 +56,7 @@ def canRemainOpen(block: Node, line: str):
                 return True
             elif block.block_type == 5 and not re.search(BLOCK_5_END, line):
                 return True
-            elif block.block_type == 6 and not re.search(BLOCK_6_END, line):
+            elif block.block_type == 6 and not re.search(re.compile(BLOCK_6_END, re.IGNORECASE), line):
                 return True
             elif block.block_type == 7 and not re.search(BLOCK_7_END, line):
                 return True
@@ -162,32 +164,38 @@ def openBlock(document: Node, line: str, deepest_open_child: Node = None):
         new_node = CodeBlockNode(document, CodeBlockType.FENCED, info_text, delimiter_char, delimiter_count, indentation_width)
     
     elif re.search(re.compile(BLOCK_1_START, re.IGNORECASE), line): # re.compile needed to have case-insensitive search as mandated in sec. 4.6
-        matched_tag = re.search(BLOCK_1_START, line).group()
-        tag_name = re.sub(r'[^\w]', "", matched_tag)
-        
-        new_node = HTMLBlockNode(document, 1, line, tag_name)
+        new_node = HTMLBlockNode(document, 1, line)
+
+        if re.search(re.compile(BLOCK_1_END, re.IGNORECASE), line): # an HTML block may be closed on the same line it has been opened
+            new_node.open = False
     elif re.search(BLOCK_2_START, line):
         new_node = HTMLBlockNode(document, 2, line)
+
+        if re.search(BLOCK_2_END, line):
+            new_node.open = False
     elif re.search(BLOCK_3_START, line):
         new_node = HTMLBlockNode(document, 3, line)
-    elif re.search(BLOCK_4_START, line):
-        matched_tag = re.search(BLOCK_4_START, line).group()
-        tag_name = re.sub(r'[^\w]', "", matched_tag) # the one ASCII character is herein considered the "tag name"
 
-        new_node = HTMLBlockNode(document, 4, line, tag_name)
+        if re.search(BLOCK_3_END, line):
+            new_node.open = False
+    elif re.search(BLOCK_4_START, line):
+        new_node = HTMLBlockNode(document, 4, line)
+
+        if re.search(BLOCK_4_END, line):
+            new_node.open = False
     elif re.search(BLOCK_5_START, line):
         new_node = HTMLBlockNode(document, 5, line)
+
+        if re.search(BLOCK_5_END, line):
+            new_node.open = False
     elif re.search(re.compile(BLOCK_6_START, re.IGNORECASE), line):
-        matched_tag = re.search(re.compile(BLOCK_6_START, re.IGNORECASE), line).group()
-        tag_name = re.sub(r'[^\w]', "", matched_tag)
+        new_node = HTMLBlockNode(document, 6, line)
 
-        new_node = HTMLBlockNode(document, 6, line, tag_name)
+        # block 6 cannot be closed on the same line it is opened as its closing condition is a blank line
     elif re.search(BLOCK_7_START, line):
-        matched_tag = re.search(BLOCK_7_START, line)
-        tag_name = re.sub(r'[^A-Za-z0-9\-]', "", line)
+        new_node = HTMLBlockNode(document, 7, line)
 
-        new_node = HTMLBlockNode(document, 7, line, tag_name)
-
+        # block 7 cannot be closed on the same line it is opened as its closing condition is a blank line
     elif re.search(BLOCK_QUOTE_MARKER, line):
         line_without_marker = re.sub(BLOCK_QUOTE_MARKER, "", line)
         new_node = Node(document, NodeType.BLOCK_QUOTE, line_without_marker)

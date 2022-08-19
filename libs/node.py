@@ -20,7 +20,7 @@ class NodeType(Enum):
     TEXT = 10
     SOFTBREAK = 11
     LINEBREAK = 12
-    CODE = 13
+    INLINE_CODE = 13
     EMPHASIS = 14
     STRONG = 15
     LINK = 16
@@ -35,14 +35,6 @@ class ListType(Enum):
 class CodeBlockType(Enum):
     INDENTED = 1
     FENCED = 2
-
-class HTMLInlineType(Enum):
-    OPEN_TAG = 0
-    CLOSING_TAG = 1
-    HTML_COMMENT = 2
-    PROCESSING_INSTRUCTION = 3
-    DECLARATION = 4
-    CDATA_SECTION = 5
 
 class Node():
     def __init__(self, parent, node_type, raw_content = ""):
@@ -117,20 +109,10 @@ class HeadingNode(Node):
         self.heading_level = heading_level
 
 class HTMLBlockNode(Node):
-    def __init__(self, parent, block_type, raw_content = "", tag_name = "", attributes = {}):
+    def __init__(self, parent, block_type, raw_content = ""):
         super().__init__(parent, NodeType.HTML_BLOCK, raw_content)
 
-        self.tag_name : str = tag_name
-        # value between 1 and 7 (inclusive); indicating the "kind of HTML block" as described in sec. 4.6
-        self.block_type: int = block_type
-
-        # "attributes" is a dictionary in the form of:
-        # {
-        #   "htmlAttribute1": value1,
-        #   "htmlAttribute2": value2,
-        #   ...
-        # }
-        self.attributes: dict = attributes
+        self.block_type: int = block_type # value between 1 and 7 (inclusive); indicating the "kind of HTML block" as described in sec. 4.6
 
 class ListNode(Node):
     def __init__(self, parent, list_type, delimiter, starting_number = None):
@@ -153,11 +135,3 @@ class LinkOrImageNode(Node):
 
         self.link_destination = link_destination
         self.title = title
-
-class HTMLInlineNode(Node):
-    def __init__(self, parent, type, tag_name, raw_content = "", attributes = {}):
-        super().__init__(parent, NodeType.HTML_INLINE, raw_content)
-
-        self.type: int = type # values of the "HTMLInlineType" enum
-        self.tag_name: str = tag_name
-        self.attributes: dict = attributes # same format as in "HTMLBlockNode"

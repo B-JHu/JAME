@@ -91,66 +91,104 @@ def parseInlines(root_block: Node, raw_content: str, link_reference_defs: list[L
         elif re.match(OPEN_TAG, raw_content_from_index):
             root_block.getDeepestOpenChild().open = False
 
-            # TODO: attribute matching
-            tag_name = re.match(TAG_NAME, raw_content_from_index[1:]).group() # remove the opening "<", then parse it as the name
-
-            new_node = HTMLInlineNode(root_block, HTMLInlineType.OPEN_TAG, tag_name)
+            new_node = Node(root_block, NodeType.HTML_INLINE, re.match(OPEN_TAG, raw_content_from_index).group())
             new_node.open = False
 
             current_char_index += re.match(OPEN_TAG, raw_content_from_index).end()
             raw_content_from_index = root_block.raw_content[current_char_index:]
+
         elif re.match(CLOSING_TAG, raw_content_from_index):
             root_block.getDeepestOpenChild().open = False
-            
-            # TODO: attribute matching
-            tag_name = re.match(TAG_NAME, raw_content_from_index[2:]).group() # same as above
 
-            new_node = HTMLInlineNode(root_block, HTMLInlineType.CLOSING_TAG, tag_name)
+            new_node = Node(root_block, NodeType.HTML_INLINE, re.match(CLOSING_TAG, raw_content_from_index).group())
             new_node.open = False
 
             current_char_index += re.match(CLOSING_TAG, raw_content_from_index).end()
             raw_content_from_index = root_block.raw_content[current_char_index:]
+            
         elif re.match(HTML_COMMENT, raw_content_from_index):
             root_block.getDeepestOpenChild().open = False
 
-            comment_text = re.match(HTML_COMMENT, raw_content_from_index).group()[4:-3]
-
-            new_node = HTMLInlineNode(root_block, HTMLInlineType.HTML_COMMENT, "", comment_text)
+            new_node = Node(root_block, NodeType.HTML_INLINE, re.match(HTML_COMMENT, raw_content_from_index).group())
             new_node.open = False
 
             current_char_index += re.match(HTML_COMMENT, raw_content_from_index).end()
             raw_content_from_index = root_block.raw_content[current_char_index:]
+
         elif re.match(PROCESSING_INSTRUCTION, raw_content_from_index):
             root_block.getDeepestOpenChild().open = False
 
-            instruction_text = re.match(PROCESSING_INSTRUCTION, raw_content_from_index).group()[2:-2]
-
-            new_node = HTMLInlineNode(root_block, HTMLInlineType.PROCESSING_INSTRUCTION, "", instruction_text)
+            new_node = Node(root_block, NodeType.HTML_INLINE, re.match(PROCESSING_INSTRUCTION, raw_content_from_index).group())
             new_node.open = False
 
             current_char_index += re.match(PROCESSING_INSTRUCTION, raw_content_from_index).end()
             raw_content_from_index = root_block.raw_content[current_char_index:]
+
         elif re.match(DECLARATION, raw_content_from_index):
             root_block.getDeepestOpenChild().open = False
 
-            declaration_text = re.match(DECLARATION, raw_content_from_index).group()[2:-1]
-
-            new_node = HTMLInlineNode(root_block, HTMLInlineType.DECLARATION, "", declaration_text)
+            new_node = Node(root_block, NodeType.HTML_INLINE, re.match(DECLARATION, raw_content_from_index).group())
             new_node.open = False
 
             current_char_index += re.match(DECLARATION, raw_content_from_index).end()
             raw_content_from_index = root_block.raw_content[current_char_index:]
+
         elif re.match(CDATA_SECTION, raw_content_from_index):
             root_block.getDeepestOpenChild().open = False
 
-            cdata_text = re.match(CDATA_SECTION, raw_content_from_index).group()[9:-3]
-
-            new_node = HTMLInlineNode(root_block, HTMLInlineType.CDATA_SECTION, "", cdata_text)
+            new_node = Node(root_block, NodeType.HTML_INLINE, re.match(CDATA_SECTION, raw_content_from_index).group())
             new_node.open = False
 
             current_char_index += re.match(CDATA_SECTION, raw_content_from_index).end()
             raw_content_from_index = root_block.raw_content[current_char_index:]
 
+        elif re.match(BACKTICK_STRING, raw_content_from_index):
+            root_block.getDeepestOpenChild().open = False
+
+            delimiter_length = len(re.match(BACKTICK_STRING, raw_content_from_index).group())
+            raw_code = ""
+
+            matching_closer_found = False
+            starting_index = current_char_index
+
+            current_char_index += delimiter_length
+            raw_content_from_index = root_block.raw_content[current_char_index:]
+
+            while not current_char_index >= len(root_block.raw_content):
+                if re.match(BACKTICK_STRING, raw_content_from_index):
+                    if len(re.match(BACKTICK_STRING, raw_content_from_index).group()) == delimiter_length:
+                        matching_closer_found = True
+                        break
+                    else: # We have found a delimiter string; however, it does not match the length requirement: hence append it at once so the parser does not get confused and tries to parse this string "one by one"
+                        raw_code += re.match(BACKTICK_STRING, raw_content_from_index).group()
+                        current_char_index += len(re.match(BACKTICK_STRING, raw_content_from_index).group())
+                        raw_content_from_index = root_block.raw_content[current_char_index:]
+                if not current_char_index >= len(root_block.raw_content): # No, this test is not redundant, as the else block above can result in advancing the parser state such that current_char_index >= len(root_block.raw_content) is true and consequently throwing an IndexError
+                    raw_code += raw_content_from_index[0]
+                    current_char_index += 1
+                    raw_content_from_index = root_block.raw_content[current_char_index:]
+
+            if matching_closer_found:
+                raw_code = re.sub(LINE_ENDING, " ", raw_code)
+
+                if raw_code[0] == " " and raw_code[-1] == " " and not re.match("^[ ]+$", raw_code):
+                    raw_code = raw_code[1:-1]
+
+                new_node = Node(root_block, NodeType.INLINE_CODE, raw_code)
+                new_node.open = False
+            
+                current_char_index += delimiter_length
+                raw_content_from_index = root_block.raw_content[current_char_index:]
+            else: # We have not found a matching closer until the end of the block; hence we append literal backticks to the root block
+                current_char_index = starting_index
+                raw_content_from_index = root_block.raw_content[current_char_index:]
+
+                new_node = Node(root_block, NodeType.TEXT)
+                new_node.content = "`" * delimiter_length
+                new_node.open = False
+
+                current_char_index += delimiter_length
+                raw_content_from_index = root_block.raw_content[current_char_index:]
         elif re.match(LINE_ENDING, raw_content_from_index):
             root_block.getDeepestOpenChild().open = False
 
@@ -322,9 +360,8 @@ def process_emphasis(block_node_to_modify: Node, delimiter_stack: list[Delimiter
             elif tmp_index > delimiter_stack.index(openers_bottom_underscore):
                 matching_opener = tmp
 
-
         if matching_opener: # we have found a potential opener
-            if not matching_opener.referenced_text_node in block_node_to_modify.children: # it is possible that the matching opener is not actually a delimiter for emphasis, but rather raw textual context of another emphasis; see sec. 6.2, rule #15 for an example of this
+            if (not matching_opener.referenced_text_node in block_node_to_modify.children) or (not current_position.referenced_text_node in block_node_to_modify.children): # it is possible that the matching opener is not actually a delimiter for emphasis, but rather raw textual context of another emphasis; see sec. 6.2, rule #15 for an example of this; also, the "emphasis delimiter" could be inside a link (or link reference definition), which leads to it not being an actual delimiter
                     break
             if matching_opener.delimiter_count >= 2 and current_position.delimiter_count >= 2:
                 opener_text_node_index = block_node_to_modify.children.index(matching_opener.referenced_text_node)
