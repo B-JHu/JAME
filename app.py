@@ -7,7 +7,7 @@ from PyQt5 import QtWidgets, QtGui, QtCore
 from libs import parser, htmlrenderer, jsonrenderer
 from layout import Ui_mainWindow
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 class MainWindow(QtWidgets.QMainWindow, Ui_mainWindow):
     def __init__(self, *args, obj=None, **kwargs):
