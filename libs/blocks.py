@@ -39,6 +39,8 @@ def canRemainOpen(block: Node, line: str):
                 return False
             if re.search(THEMATIC_BREAK, line): # sec. 4.1: "Thematic breaks can interrupt a paragraph"
                 return False
+            if re.search(ATX_HEADING, line): # sec. 4.2: "ATX headings need not be separated from surrounding content by blank lines, and they can interrupt paragraphs"
+                return False
             return True
 
         case NodeType.HEADING:
@@ -122,7 +124,7 @@ def openBlock(document: Node, line: str, deepest_open_child: Node = None):
     if re.search(ATX_HEADING, line):
         heading_level = len(re.search(ATX_HEADING, line).group().strip())
 
-        removed_heading_marker = re.sub(ATX_HEADING, "", line)
+        removed_heading_marker = re.sub("^[ ]{0,3}#{1,6}", "", line) # No, I cannot use re.sub(ATX_HEADING ...) as that would result in example 79 of the CommonMark spec failing 
         removed_closing_seq = re.sub(ATX_HEADING_OPT_CLOSING_SEQ, "", removed_heading_marker)
         removed_spaces = removed_closing_seq.strip()
 

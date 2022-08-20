@@ -40,7 +40,7 @@ def parseInlines(root_block: Node, raw_content: str, link_reference_defs: list[L
             else:
                 next_char = raw_content_from_index[1]
 
-            if re.match(f"[{ASCII_PUNCTUATION_CHARS}]", next_char):
+            if re.match('[#!"\$%&\'\(\)\*\+,-\.\/:;<=>\?@\[\]\]\\\^_`{|}~\u0021\u0022\u0023\u0024\u0025\u0026\u0027\u0028\u0029\u002A\u002B\u002C\u002D\u002E\u002F\u003A\u003B\u003C\u003D\u003E\u003F\u0040\u005B\u005C\u005D\u005E\u005F\u0060\u007B\u007C\u007D\u007E]', next_char): # for whatever reason, I cannot just input f"[{ASCII_PUNCTUATION_CHARS}]" as the regular expression here... (changing "ASCII_PUNCTUATION_CHARS" to this string in regexps.py makes tests in the emphasis section fail; I'm clueless to why that is, but this works, so it's fine I guess)
                 new_node = Node(root_block, NodeType.TEXT)
                 new_node.content = next_char
                 new_node.open = False
@@ -222,24 +222,24 @@ def parseInlines(root_block: Node, raw_content: str, link_reference_defs: list[L
             delim_stack_entry = None
 
             # left-flanking case 1 + 2a
-            if not re.match(UNICODE_WHITESPACE, next_char) and not re.match(r'[' + UNICODE_PUNCTUATION_CHARS + r']', next_char):
+            if not re.match(UNICODE_WHITESPACE, next_char) and not re.match('[' + UNICODE_PUNCTUATION_CHARS + ']', next_char):
                 delim_stack_entry = DelimiterStackEntry(new_node, new_node.content[0], len(new_node.content), DelimiterFunction.OPENING)
                 delimiter_stack.append(delim_stack_entry)
             # left-flanking case 1 + 2b
-            elif not re.match(UNICODE_WHITESPACE, next_char) and re.match(r'[' + UNICODE_PUNCTUATION_CHARS + r']', next_char) and (re.match(UNICODE_WHITESPACE, previous_char) or re.match(r'[' + UNICODE_PUNCTUATION_CHARS + r']', previous_char)):
+            elif not re.match(UNICODE_WHITESPACE, next_char) and re.match('[' + UNICODE_PUNCTUATION_CHARS + ']', next_char) and (re.match(UNICODE_WHITESPACE, previous_char) or re.match('[' + UNICODE_PUNCTUATION_CHARS + ']', previous_char)):
                 delim_stack_entry = DelimiterStackEntry(new_node, new_node.content[0], len(new_node.content), DelimiterFunction.OPENING)
                 delimiter_stack.append(delim_stack_entry)
 
             # right-flanking case 1 + 2a
             # *if*, not *elif*, as a delimiter run can be both left and right flanking at the same time
-            if not re.match(UNICODE_WHITESPACE, previous_char) and not re.match(r'[' + UNICODE_PUNCTUATION_CHARS + r']', previous_char):
+            if not re.match(UNICODE_WHITESPACE, previous_char) and not re.match('[' + UNICODE_PUNCTUATION_CHARS + ']', previous_char):
                 if delim_stack_entry:
                     delim_stack_entry.function = DelimiterFunction.BOTH # if a delimiter stack entry was created by the previous if-statement, then just change the function accordingly
                 else:
                     delim_stack_entry = DelimiterStackEntry(new_node, new_node.content[0], len(new_node.content), DelimiterFunction.CLOSING)
                     delimiter_stack.append(delim_stack_entry)
             # right-flanking case 1 + 2b
-            elif not re.match(UNICODE_WHITESPACE, previous_char) and re.match(r'[' + UNICODE_PUNCTUATION_CHARS + r']', previous_char) and (re.match(UNICODE_WHITESPACE, next_char) or re.match(r'[' + UNICODE_PUNCTUATION_CHARS + r']', next_char)):
+            elif not re.match(UNICODE_WHITESPACE, previous_char) and re.match('[' + UNICODE_PUNCTUATION_CHARS + ']', previous_char) and (re.match(UNICODE_WHITESPACE, next_char) or re.match('[' + UNICODE_PUNCTUATION_CHARS + ']', next_char)):
                 if delim_stack_entry:
                     delim_stack_entry.function = DelimiterFunction.BOTH
                 else:
