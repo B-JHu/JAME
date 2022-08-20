@@ -16,7 +16,7 @@ So what is it for then? It aims - first and foremost - to serve as a *learning o
     - PDF
     - XML
     - LaTeX
-- full [CommonMark](https://commonmark.org/) support (current status: 302 of 652 tests passing 😞)
+- full [CommonMark](https://commonmark.org/) support (current status: 306 of 652 tests passing 😞)
 - Syntax highlighting in the text editing field
 - Synchronized scrolling between the editing & preview pane
 

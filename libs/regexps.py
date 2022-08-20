@@ -11,7 +11,7 @@ UNICODE_PUNCTUATION_CHARS = ASCII_PUNCTUATION_CHARS + '\u005F\u203F\u2040\u2054\
 THEMATIC_BREAK = '^[ ]{0,3}(?:(?:\-[ \t]*){3,}|(?:\_[ \t]*){3,}|(?:\*[ \t]*){3,})$'
 ATX_HEADING = '^[ ]{0,3}#{1,6}(?:[ \t]+|$)'
 ATX_HEADING_OPT_CLOSING_SEQ = '[ \t]+#+[ \t]*'
-SETEXT_HEADING_UNDERLINE = '^[ ]{0,3}(?:=+|-{2,})[ \t]*'
+SETEXT_HEADING_UNDERLINE = '^[ ]{0,3}(?:=+|-{2,})[ \t]*$'
 
 INDENTED_CODE_BLOCK = '^(?:[ ]{4,}|\t+)'
 FENCED_CODE_BLOCK_BEGINNING = '^[ ]{0,3}(?:`{3,}(?!.*`)|\~{3,}.*)'

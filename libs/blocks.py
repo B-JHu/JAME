@@ -37,6 +37,8 @@ def canRemainOpen(block: Node, line: str):
                 return False
             if re.search(re.compile(BLOCK_1_START, re.IGNORECASE), line) or re.search(BLOCK_2_START, line) or re.search(BLOCK_3_START, line) or re.search(BLOCK_4_START, line) or re.search(BLOCK_5_START, line) or re.search(BLOCK_6_START, line): # sec. 4.6: "An HTML block of types 1–6 can interrupt a paragraph"
                 return False
+            if re.search(THEMATIC_BREAK, line): # sec. 4.1: "Thematic breaks can interrupt a paragraph"
+                return False
             return True
 
         case NodeType.HEADING:
@@ -66,6 +68,9 @@ def canRemainOpen(block: Node, line: str):
             return False
 
         case NodeType.LIST:
+            if re.search(THEMATIC_BREAK, line): # sec. 4.1: "When both a thematic break and a list item are possible interpretations of a line, the thematic break takes precedence" (yes, this check is needed in both the list as well as the list item to work)
+                return False
+
             if block.list_type == ListType.ORDERED:
                 list_marker_matchobj = re.search(ORDERED_LIST_MARKER, line)
                 if not list_marker_matchobj:
@@ -88,6 +93,8 @@ def canRemainOpen(block: Node, line: str):
         case NodeType.LIST_ITEM:
             if re.search(BLANK_LINE, line): # a blank line does not close a list item; however, it determines if the list is "tight" or "loose" as per sec. 5.3
                 return True
+            if re.search(THEMATIC_BREAK, line): # sec. 4.1: "When both a thematic break and a list item are possible interpretations of a line, the thematic break takes precedence"
+                return False
 
             # reasoning for this is in sec. 5.2
             line_indent_match = re.search(r'^[ \t]+', line)
