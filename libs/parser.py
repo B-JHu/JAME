@@ -12,10 +12,22 @@ def parseBlocks(document: Node, line: str, link_reference_defs: list[LinkReferen
 
     # paragraph continuation text/"lazy continuation" (sec. 5.1)
     if deepest_open_child.node_type == NodeType.PARAGRAPH and canRemainOpen(deepest_open_child, line):
-        line_text = removePossibleMarkers(line)
+        if re.search(SETEXT_HEADING_UNDERLINE, line):
+            parseSetextHeadingUnderline(document, line)
+        elif re.search(THEMATIC_BREAK, line): # Since the paragraph needs to remain open when the current line is a thematic break (as it could be a setext heading underline), I need to implement this check.
+            deepest_open_child.open = False
+            parseLinkReferenceDefs(deepest_open_child, link_reference_defs)
+            
+            deepest_open_child = document.getDeepestOpenChild()
+            while not canRemainOpen(deepest_open_child, line):
+                deepest_open_child.open = False
+                deepest_open_child = document.getDeepestOpenChild()
 
-        deepest_open_child.addLine(line_text)
-        pass
+            openBlock(document, line, deepest_open_child)
+        else:
+            line_text = removePossibleMarkers(line)
+
+            deepest_open_child.addLine(line_text)
     elif not deepest_open_child.node_type == NodeType.DOCUMENT: # no lazy continuation, but still an open block
         if canRemainOpen(deepest_open_child, line):
             if deepest_open_child.node_type == NodeType.HTML_BLOCK and deepest_open_child.parent.node_type in [NodeType.BLOCK_QUOTE, NodeType.LIST, NodeType.LIST_ITEM]: # if we have an open HTML within a container block, we need to remove the blockquote or list item marker

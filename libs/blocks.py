@@ -31,13 +31,9 @@ def canRemainOpen(block: Node, line: str):
         case NodeType.PARAGRAPH:
             if re.search(BLANK_LINE, line):
                 return False
-            if re.search(SETEXT_HEADING_UNDERLINE, line): # needed for correct parsing of setext-headings -> we need it to be closed, so openBlock() can be called to correctly build the heading
-                return False
             if re.search(BULLET_LIST_MARKER, line.lstrip()) or re.search(ORDERED_LIST_MARKER, line.lstrip()): # lists may interrupt a paragraph
                 return False
             if re.search(re.compile(BLOCK_1_START, re.IGNORECASE), line) or re.search(BLOCK_2_START, line) or re.search(BLOCK_3_START, line) or re.search(BLOCK_4_START, line) or re.search(BLOCK_5_START, line) or re.search(BLOCK_6_START, line): # sec. 4.6: "An HTML block of types 1–6 can interrupt a paragraph"
-                return False
-            if re.search(THEMATIC_BREAK, line): # sec. 4.1: "Thematic breaks can interrupt a paragraph"
                 return False
             if re.search(ATX_HEADING, line): # sec. 4.2: "ATX headings need not be separated from surrounding content by blank lines, and they can interrupt paragraphs"
                 return False
@@ -120,6 +116,25 @@ def removePossibleMarkers(line: str):
 
     return removed_ul_list_markers.lstrip()
 
+def parseSetextHeadingUnderline(document: Node, line: str):
+    deepest_open_child = document.getDeepestOpenChild()
+
+    if deepest_open_child and deepest_open_child.node_type == NodeType.PARAGRAPH and canRemainOpen(deepest_open_child.parent, line): # The last part is to make sure that the setext heading underline is not part of a lazy continuation, as this is not allowed for a setext heading per sec. 4.2: "The setext heading underline cannot be a lazy continuation line in a list item or block quote"
+        original_paragraph_text = deepest_open_child.raw_content
+        heading_level = 1
+        if line.lstrip()[0] == '-':
+            heading_level = 2
+
+        del document.children[-1] # The new heading replaces the old paragraph
+
+        new_node = HeadingNode(document, heading_level, original_paragraph_text)
+        new_node.open = False
+    elif re.search(THEMATIC_BREAK, line): # If a setext heading underline does not appear whilst a paragraph is open, it could be a thematic break
+        new_node = Node(document, NodeType.THEMATIC_BREAK)
+        new_node.open = False
+    else: # Neither a setext heading nor a thematic break; leave the paragraph as is
+        deepest_open_child.addLine(line)
+
 def openBlock(document: Node, line: str, deepest_open_child: Node = None):
     if re.search(ATX_HEADING, line):
         heading_level = len(re.search(ATX_HEADING, line).group().strip())
@@ -130,22 +145,6 @@ def openBlock(document: Node, line: str, deepest_open_child: Node = None):
 
         new_node = HeadingNode(document, heading_level, removed_spaces)
         new_node.open = False
-    elif re.search(SETEXT_HEADING_UNDERLINE, line):
-        if document.children and document.getLastChild().node_type == NodeType.PARAGRAPH:
-            original_paragraph_text = document.getLastChild().raw_content
-            heading_level = 1
-            if line.strip()[0] == '-':
-                heading_level = 2
-
-            del document.children[-1] # the new heading replaces the old paragraph
-
-            new_node = HeadingNode(document, heading_level, original_paragraph_text)
-            new_node.open = False
-        elif re.search(THEMATIC_BREAK, line): # if a setext heading underline is in the first line of input, it could well be a thematic break
-            new_node = Node(document, NodeType.THEMATIC_BREAK)
-            new_node.open = False
-        else: # neither a setext heading nor a thematic break; return dashes as literal
-            new_node = Node(document, NodeType.PARAGRAPH, line)
     elif re.search(THEMATIC_BREAK, line):
         new_node = Node(document, NodeType.THEMATIC_BREAK)
         new_node.open = False
