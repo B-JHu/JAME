@@ -16,7 +16,9 @@ def block_quote(block_quote_node: Node):
     return output
 
 def code_block(code_block_node: CodeBlockNode):
-    return f"<pre><code>{code_block_node.raw_content}</code></pre>"
+    if code_block_node.raw_content and code_block_node.raw_content[-1] == "\n":
+        return f"<pre><code>{code_block_node.raw_content}</code></pre>"
+    return f"<pre><code>{code_block_node.raw_content}\n</code></pre>"
 
 def paragraph(paragraph_node: Node):
     if not paragraph_node.children:

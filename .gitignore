@@ -5,4 +5,5 @@ dist
 
 layout.ui
 test_results.txt
+run_commonmark_tests.sh
 libs/test.py

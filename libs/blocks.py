@@ -24,9 +24,11 @@ def canRemainOpen(block: Node, line: str):
                     return False
                 return True
             else:
-                if re.search(BLANK_LINE, line):
-                    return False
-                return True
+                if re.search(INDENTED_CODE_BLOCK, line):
+                    return True
+                elif re.search(BLANK_LINE, line):
+                    return True
+                return False
 
         case NodeType.PARAGRAPH:
             if re.search(BLANK_LINE, line):
@@ -149,9 +151,17 @@ def openBlock(document: Node, line: str, deepest_open_child: Node = None):
         new_node = Node(document, NodeType.THEMATIC_BREAK)
         new_node.open = False
     elif re.search(INDENTED_CODE_BLOCK, line):
-        code_text = line[4:]
+        code_text = ""
 
-        new_node = CodeBlockNode(document, CodeBlockType.INDENTED, raw_content=code_text)
+        if re.search("^[ ]{4,}", line):
+            code_text = line[4:]
+        elif re.search("^[\t]+", line):
+            code_text = line[1:]
+        else: # line is a blank line;
+            code_text = "\n"
+
+        if not re.search(BLANK_LINE, code_text): # a code block cannot start with a blank line
+            new_node = CodeBlockNode(document, CodeBlockType.INDENTED, raw_content=code_text)
     elif re.search(FENCED_CODE_BLOCK_BEGINNING, line):
         info_text = None
         if line.lstrip()[0] == '`':

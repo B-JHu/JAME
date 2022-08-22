@@ -32,6 +32,13 @@ def parseBlocks(document: Node, line: str, link_reference_defs: list[LinkReferen
         if canRemainOpen(deepest_open_child, line):
             if deepest_open_child.node_type == NodeType.HTML_BLOCK and deepest_open_child.parent.node_type in [NodeType.BLOCK_QUOTE, NodeType.LIST, NodeType.LIST_ITEM]: # if we have an open HTML within a container block, we need to remove the blockquote or list item marker
                 deepest_open_child.addLine(removePossibleMarkers(line))
+            elif deepest_open_child.node_type == NodeType.CODE_BLOCK and deepest_open_child.type == CodeBlockType.INDENTED:
+                if re.search("^[ ]{4,}", line):
+                    deepest_open_child.addLine(line[4:])
+                elif re.search("^[\t]+", line):
+                    deepest_open_child.addLine(line[1:])
+                else: # line is a blank line
+                    deepest_open_child.addLine("\n")
             else:
                 deepest_open_child.addLine(line)
 
@@ -51,8 +58,12 @@ def parseBlocks(document: Node, line: str, link_reference_defs: list[LinkReferen
 
             if deepest_open_child.node_type == NodeType.LIST_ITEM: # needed to make sub-lists possible
                 openBlock(deepest_open_child, line[deepest_open_child.continuation_indent:], deepest_open_child)
-            elif document.getLastChild().node_type == NodeType.CODE_BLOCK: # if we just closed a code block, we do not want the closing sequence of backticks to be interpreted as the beginning of a new code block; hence skip it
-                pass
+            elif document.getLastChild().node_type == NodeType.CODE_BLOCK: 
+                if document.getLastChild().type == CodeBlockType.FENCED:
+                    pass # If we just closed a fenced code block, we do not want the closing sequence of backticks to be interpreted as the beginning of a new code block; hence skip it
+                else: # On closing an indented code block, we need to strip it of trailing blank lines (see example 117 of the CommonMark spec)
+                    document.getLastChild().raw_content = re.sub("\n [ \t\n]*$", "\n", document.getLastChild().raw_content)
+                    openBlock(document, line, deepest_open_child)
             else:
                 openBlock(document, line, deepest_open_child)
     else: # no lazy continuation and no open block: open a new one...
@@ -77,14 +88,15 @@ class Parser:
         self.link_reference_defs: list[LinkReferenceDefinition] = []
 
         markdownInput = re.sub(r'\\uOOOO', r'\\uFFFD', markdownInput) # as per sec. 2.3
-        markdownInput = markdownInput.rstrip() # ignore new-lines & spaces at the end of the document
         lines = markdownInput.splitlines(True)
 
         for line in lines:
             parseBlocks(self.document, line, self.link_reference_defs)
 
-        if self.document and self.document.getLastChild() and self.document.getLastChild().node_type == NodeType.PARAGRAPH:
+        if self.document.getLastChild() and self.document.getLastChild().node_type == NodeType.PARAGRAPH:
             parseLinkReferenceDefs(self.document.getLastChild(), self.link_reference_defs) # at the end of input, it is possible to have an open paragraph node that has not been checked for link reference definitions
+        elif self.document.getLastChild() and self.document.getLastChild().node_type == NodeType.CODE_BLOCK and self.document.getLastChild().type == CodeBlockType.INDENTED: # At the end of input, it is possible to have an open indented code block that has not had its trailing blank lines stripped
+            self.document.getLastChild().raw_content = re.sub("\n[ \t\n]*\Z", "\n", self.document.getLastChild().raw_content)
 
         for child in self.document.children:
             recursiveInlineParsing(child, self.link_reference_defs)
