@@ -15,7 +15,7 @@ SETEXT_HEADING_UNDERLINE = '^[ ]{0,3}(?:=+|-{2,})[ \t]*$'
 
 INDENTED_CODE_BLOCK = '^(?:[ ]{4,}|\t+)'
 FENCED_CODE_BLOCK_BEGINNING = '^[ ]{0,3}(?:`{3,}(?!.*`)|\~{3,}.*)'
-FENCED_CODE_BLOCK_ENDING = '^[ ]{0,3}(?:`|~){3,}[ \t]*'
+FENCED_CODE_BLOCK_ENDING = '^[ ]{0,3}(?:`|~){3,}[ \t]*$'
 
 ## sec. 4.6: HTML blocks
 BLOCK_1_START = '^[ ]{0,3}<(?:pre|script|style|textarea)(?:[ ]|\t|>|$)'

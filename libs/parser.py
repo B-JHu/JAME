@@ -32,13 +32,23 @@ def parseBlocks(document: Node, line: str, link_reference_defs: list[LinkReferen
         if canRemainOpen(deepest_open_child, line):
             if deepest_open_child.node_type == NodeType.HTML_BLOCK and deepest_open_child.parent.node_type in [NodeType.BLOCK_QUOTE, NodeType.LIST, NodeType.LIST_ITEM]: # if we have an open HTML within a container block, we need to remove the blockquote or list item marker
                 deepest_open_child.addLine(removePossibleMarkers(line))
-            elif deepest_open_child.node_type == NodeType.CODE_BLOCK and deepest_open_child.type == CodeBlockType.INDENTED:
-                if re.search("^[ ]{4,}", line):
-                    deepest_open_child.addLine(line[4:])
-                elif re.search("^[\t]+", line):
-                    deepest_open_child.addLine(line[1:])
-                else: # line is a blank line
-                    deepest_open_child.addLine("\n")
+            elif deepest_open_child.node_type == NodeType.CODE_BLOCK:
+                if deepest_open_child.type == CodeBlockType.INDENTED:
+                    if re.search("^[ ]{4,}", line):
+                        deepest_open_child.addLine(line[4:])
+                    elif re.search("^[\t]+", line):
+                        deepest_open_child.addLine(line[1:])
+                    else: # line is a blank line
+                        deepest_open_child.addLine("\n")
+                else: # fenced code block; we need to strip code_block_node.indentation_width of spaces from the beginning of the line before adding it (see example 131)
+                    if re.search("^[ ]+", line):
+                        indentation_width = len(re.search("^[ ]+", line).group())
+                        if indentation_width <= deepest_open_child.indentation_width:
+                            deepest_open_child.addLine(line.lstrip())
+                        else:
+                            deepest_open_child.addLine(line[deepest_open_child.indentation_width:])
+                    else:
+                        deepest_open_child.addLine(line)
             else:
                 deepest_open_child.addLine(line)
 

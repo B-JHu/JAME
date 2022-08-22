@@ -16,7 +16,12 @@ def block_quote(block_quote_node: Node):
     return output
 
 def code_block(code_block_node: CodeBlockNode):
-    if code_block_node.raw_content and code_block_node.raw_content[-1] == "\n":
+    if code_block_node.language:
+        if not code_block_node.raw_content or code_block_node.raw_content[-1] == "\n": # code block rendering is handled very weirdly in the CommonMark spec (in my opinion)
+            return f"<pre><code class=\"language-{code_block_node.language}\">{code_block_node.raw_content}</code></pre>"
+        return f"<pre><code class=\"language-{code_block_node.language}\">{code_block_node.raw_content}\n</code></pre>"
+
+    if not code_block_node.raw_content or code_block_node.raw_content[-1] == "\n":
         return f"<pre><code>{code_block_node.raw_content}</code></pre>"
     return f"<pre><code>{code_block_node.raw_content}\n</code></pre>"
 

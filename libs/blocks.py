@@ -19,8 +19,9 @@ def canRemainOpen(block: Node, line: str):
                 if not search_result:
                     return True
                 
-                found_fence_char = search_result.group().strip()[1]
-                if found_fence_char == block.delimiter_char:
+                found_ending_fence = search_result.group().strip()
+                found_ending_fence_delim_char = found_ending_fence[0]
+                if found_ending_fence_delim_char == block.delimiter_char and len(found_ending_fence) >= block.delimiter_count:
                     return False
                 return True
             else:
@@ -38,6 +39,8 @@ def canRemainOpen(block: Node, line: str):
             if re.search(re.compile(BLOCK_1_START, re.IGNORECASE), line) or re.search(BLOCK_2_START, line) or re.search(BLOCK_3_START, line) or re.search(BLOCK_4_START, line) or re.search(BLOCK_5_START, line) or re.search(BLOCK_6_START, line): # sec. 4.6: "An HTML block of types 1–6 can interrupt a paragraph"
                 return False
             if re.search(ATX_HEADING, line): # sec. 4.2: "ATX headings need not be separated from surrounding content by blank lines, and they can interrupt paragraphs"
+                return False
+            if re.search(FENCED_CODE_BLOCK_BEGINNING, line): # sec. 4.5: "A fenced code block may interrupt a paragraph"
                 return False
             return True
 
@@ -165,9 +168,13 @@ def openBlock(document: Node, line: str, deepest_open_child: Node = None):
     elif re.search(FENCED_CODE_BLOCK_BEGINNING, line):
         info_text = None
         if line.lstrip()[0] == '`':
-            info_text = line.replace("`", "").strip()
+            fence_without_backticks = line.replace("`", "").strip()
+            if fence_without_backticks:
+                info_text = fence_without_backticks.split()[0] # see example 143: The info string is only the first word after the backtick fence
         else:
-            info_text = re.sub(r'^[ ]{0,3}~+', "", line).strip()
+            fence_without_tildes = re.sub(r'^[ ]{0,3}~+', "", line).strip()
+            if fence_without_tildes:
+                info_text = fence_without_tildes.split()[0]
         if info_text == "":
             info_text = None
 
@@ -177,7 +184,8 @@ def openBlock(document: Node, line: str, deepest_open_child: Node = None):
             indentation_width = len(indentation_match_obj.group())
 
         delimiter_char = line.lstrip()[0]
-        delimiter_count = len(re.sub(r'[^' + delimiter_char + ']', "", line).strip())
+        delimiter_count = len(re.search('^[' + delimiter_char + ']+', line.lstrip()).group())
+        # delimiter_count = len(re.sub(r'[^' + delimiter_char + ']', "", line).strip())
 
         new_node = CodeBlockNode(document, CodeBlockType.FENCED, info_text, delimiter_char, delimiter_count, indentation_width)
     
