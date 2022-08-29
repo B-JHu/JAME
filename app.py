@@ -4,7 +4,7 @@ import os
 import re
 from PyQt5 import QtWidgets, QtGui, QtCore
 
-from libs import parser, htmlrenderer, jsonrenderer
+from libs import parser, htmlrenderer, jsonrenderer, syntaxhighlighter
 from layout import Ui_mainWindow
 
 __version__ = "0.1.1"
@@ -59,12 +59,14 @@ class MainWindow(QtWidgets.QMainWindow, Ui_mainWindow):
         # correct the relative sizes of the elements in the splitter
         self.splitter.setStretchFactor(0, 1)
         self.splitter.setStretchFactor(1, 2)
-        
 
     def handleInputChange(self):
         self.text = self.textEdit.toPlainText()
 
         self.ast = self.parser.parse(self.text)
+        self.textEdit.blockSignals(True)
+        syntaxhighlighter.highlightSyntax(self.textEdit, self.text, self.ast, 0)
+        self.textEdit.blockSignals(False)
         html_string = self.htmlRenderer.render(self.ast)
 
         self.webEngineView.setHtml(html_string)
