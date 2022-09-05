@@ -30,6 +30,7 @@ exe = EXE(
     strip=False,
     upx=True,
     console=False,
+    icon="ui/logo_dark_text.ico",
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,

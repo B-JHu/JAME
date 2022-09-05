@@ -13,7 +13,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_mainWindow):
     def __init__(self, *args, obj=None, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
         self.setupUi(self)
-        
+
         self.text = self.textEdit.toPlainText()
         self.current_open_file = "untitled"
 
@@ -60,6 +60,13 @@ class MainWindow(QtWidgets.QMainWindow, Ui_mainWindow):
         self.splitter.setStretchFactor(0, 1)
         self.splitter.setStretchFactor(1, 2)
 
+        # set version number in the "status bar" on the bottom of the UI
+        self.JAME_name_label.setText(f"JAME — Just another Markdown editor v{__version__}")
+        # + make it monospace
+        current_font = self.JAME_name_label.font()
+        current_font.setStyleHint(QtGui.QFont.Monospace)
+        self.JAME_name_label.setFont(current_font)
+
     def handleInputChange(self):
         self.text = self.textEdit.toPlainText()
 
@@ -78,7 +85,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_mainWindow):
         words = len(self.text.split())
         characters = len(self.text)
 
-        self.statusbar.showMessage(f"{words} words (with {characters} characters) spanning {lines} lines.")
+        self.document_status_label.setText(f"{words} words (with {characters} characters) spanning {lines} lines.")
 
     def applyStylesheet(self, stylesheet_path: str):
         if not stylesheet_path: # "None (default)" stylesheet has been chosen
@@ -96,23 +103,68 @@ class MainWindow(QtWidgets.QMainWindow, Ui_mainWindow):
 
         match what_to_insert:
             case "Bold":
-                text_cursor.insertText("****")
-                text_cursor.movePosition(QtGui.QTextCursor.MoveOperation.Left, n=2)
-                self.textEdit.setTextCursor(text_cursor)
+                if text_cursor.hasSelection():
+                    selection_beginning_position = text_cursor.anchor()
+                    selection_ending_position = text_cursor.position()
+
+                    if selection_beginning_position > selection_ending_position: # If the anchor is to the right of the cursor's position, swap it so the code below works
+                        tmp = selection_beginning_position
+                        selection_beginning_position = selection_ending_position
+                        selection_ending_position = tmp
+
+                    text_cursor.setPosition(selection_beginning_position)
+                    text_cursor.insertText("**")
+                    text_cursor.setPosition(selection_ending_position + 2) # We need to account for the freshly inserted '**', hence '+ 2'
+                    text_cursor.insertText("**")
+                    self.textEdit.setTextCursor(text_cursor)
+                else:
+                    text_cursor.insertText("****")
+                    text_cursor.movePosition(QtGui.QTextCursor.MoveOperation.Left, n=2)
+                    self.textEdit.setTextCursor(text_cursor)
             case "Italic":
-                text_cursor.insertText("**")
-                text_cursor.movePosition(QtGui.QTextCursor.MoveOperation.Left, n=1)
-                self.textEdit.setTextCursor(text_cursor)
+                if text_cursor.hasSelection():
+                    selection_beginning_position = text_cursor.anchor()
+                    selection_ending_position = text_cursor.position()
+
+                    if selection_beginning_position > selection_ending_position:
+                        tmp = selection_beginning_position
+                        selection_beginning_position = selection_ending_position
+                        selection_ending_position = tmp
+
+                    text_cursor.setPosition(selection_beginning_position)
+                    text_cursor.insertText("*")
+                    text_cursor.setPosition(selection_ending_position + 1)
+                    text_cursor.insertText("*")
+                    self.textEdit.setTextCursor(text_cursor)
+                else:
+                    text_cursor.insertText("**")
+                    text_cursor.movePosition(QtGui.QTextCursor.MoveOperation.Left, n=1)
+                    self.textEdit.setTextCursor(text_cursor)
             case "Bullet list":
                 text_cursor.movePosition(QtGui.QTextCursor.MoveOperation.StartOfLine)
                 text_cursor.insertText("- ")
             case "Ordered list":
                 text_cursor.movePosition(QtGui.QTextCursor.MoveOperation.StartOfLine)
-                text_cursor.insertText("1.")
+                text_cursor.insertText("1. ")
             case "Code block":
-                text_cursor.insertText("```\n\n```")
-                text_cursor.movePosition(QtGui.QTextCursor.MoveOperation.Up)
-                self.textEdit.setTextCursor(text_cursor)
+                if text_cursor.hasSelection():
+                    selection_beginning_position = text_cursor.anchor()
+                    selection_ending_position = text_cursor.position()
+
+                    if selection_beginning_position > selection_ending_position:
+                        tmp = selection_beginning_position
+                        selection_beginning_position = selection_ending_position
+                        selection_ending_position = tmp
+
+                    text_cursor.setPosition(selection_beginning_position)
+                    text_cursor.insertText("```\n")
+                    text_cursor.setPosition(selection_ending_position + 4)
+                    text_cursor.insertText("\n```")
+                    self.textEdit.setTextCursor(text_cursor)
+                else:
+                    text_cursor.insertText("```\n\n```")
+                    text_cursor.movePosition(QtGui.QTextCursor.MoveOperation.Up)
+                    self.textEdit.setTextCursor(text_cursor)
             case "Block quote":
                 text_cursor.movePosition(QtGui.QTextCursor.MoveOperation.StartOfLine)
                 text_cursor.insertText("> ")
@@ -167,7 +219,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_mainWindow):
                 case QtWidgets.QMessageBox.StandardButton.Discard:
                     self.current_open_file = "untitled"
                     self.textEdit.setText("")
-                    
+
                 case QtWidgets.QMessageBox.StandardButton.Cancel:
                     pass
 
@@ -187,7 +239,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_mainWindow):
             match chosen_option:
                 case QtWidgets.QMessageBox.StandardButton.Save:
                     self.menubar_save_clicked()
-                    
+
                     file_name_to_open, filter_chosen = QtWidgets.QFileDialog.getOpenFileName(self, "Open a Markdown file", os.getcwd(), "Markdown files (*.md);;Text files (*.txt)", "Markdown files (*.md)")
 
                     with open(file_name_to_open, "r") as file_to_open:
@@ -198,7 +250,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_mainWindow):
 
                 case QtWidgets.QMessageBox.StandardButton.Discard:
                     self.menubar_save_clicked()
-                    
+
                     file_name_to_open, filter_chosen = QtWidgets.QFileDialog.getOpenFileName(self, "Open a Markdown file", os.getcwd(), "Markdown files (*.md);;Text files (*.txt)", "Markdown files (*.md)")
 
                     with open(file_name_to_open, "r") as file_to_open:
@@ -206,7 +258,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_mainWindow):
 
                     self.current_open_file = file_name_to_open
                     self.setWindowTitle(f"JAME: just another Markdown editor — {self.current_open_file}")
-                    
+
                 case QtWidgets.QMessageBox.StandardButton.Cancel:
                     pass
 
@@ -235,7 +287,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_mainWindow):
         QtGui.QDesktopServices.openUrl(QtCore.QUrl("https://commonmark.org/help/tutorial/"))
 
     def menubar_about_clicked(self):
-        about_string_with_version = f"JAME - just another Markdown editor\nVersion {__version__}\n\nPublished under the GPL v3 license"
+        about_string_with_version = f"<body style=\"align:center;text-align:center\"><b>JAME</b> - just another Markdown editor<br/>Version {__version__}<br/><br/>Published under the GPL v3 license</body>"
         QtWidgets.QMessageBox.about(self, f"About JAME", about_string_with_version)
 
     # exporters
@@ -267,6 +319,29 @@ class MainWindow(QtWidgets.QMainWindow, Ui_mainWindow):
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
 
+    q_stylesheet = QtCore.QFile("ui/resources_dark/stylesheet.qss")
+    q_stylesheet.open(QtCore.QFile.ReadOnly | QtCore.QFile.Text)
+    style_stream = QtCore.QTextStream(q_stylesheet)
+    app.setStyleSheet(style_stream.readAll())
+
+    app.setWindowIcon(QtGui.QIcon("ui/logo_dark_text.svg"))
+
     window = MainWindow()
+    window.setWindowIcon(QtGui.QIcon("ui/logo_dark_text.svg"))
+
+    def toggleLightMode():
+        if window.actionLight_mode.isChecked():
+            q_stylesheet = QtCore.QFile("ui/resources_light/stylesheet.qss")
+            q_stylesheet.open(QtCore.QFile.ReadOnly | QtCore.QFile.Text)
+            style_stream = QtCore.QTextStream(q_stylesheet)
+            app.setStyleSheet(style_stream.readAll())
+        else:
+            q_stylesheet = QtCore.QFile("ui/resources_dark/stylesheet.qss")
+            q_stylesheet.open(QtCore.QFile.ReadOnly | QtCore.QFile.Text)
+            style_stream = QtCore.QTextStream(q_stylesheet)
+            app.setStyleSheet(style_stream.readAll())
+
+    window.actionLight_mode.toggled.connect(toggleLightMode)
+
     window.show()
     app.exec()

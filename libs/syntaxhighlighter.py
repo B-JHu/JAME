@@ -58,7 +58,9 @@ def highlightSyntax(text_edit: QtWidgets.QTextEdit, text: str, ast: Node, p_curr
                 ending_index = current_index
 
                 fmt = QtGui.QTextCharFormat()
-                fmt.setFont(QtGui.QFont("monospace"), QtGui.QTextCharFormat.FontPropertiesInheritanceBehavior.FontPropertiesSpecifiedOnly)
+                font = QtGui.QFont("monospace")
+                font.setStyleHint(QtGui.QFont.Monospace)
+                fmt.setFont(font, QtGui.QTextCharFormat.FontPropertiesInheritanceBehavior.FontPropertiesSpecifiedOnly)
                 setFormat(text_edit, beginning_index, ending_index - beginning_index, fmt)
 
             else:
@@ -77,7 +79,9 @@ def highlightSyntax(text_edit: QtWidgets.QTextEdit, text: str, ast: Node, p_curr
                 ending_index = current_index
 
                 fmt = QtGui.QTextCharFormat()
-                fmt.setFont(QtGui.QFont("monospace"), QtGui.QTextCharFormat.FontPropertiesInheritanceBehavior.FontPropertiesSpecifiedOnly)
+                font = QtGui.QFont("monospace")
+                font.setStyleHint(QtGui.QFont.Monospace)
+                fmt.setFont(font, QtGui.QTextCharFormat.FontPropertiesInheritanceBehavior.FontPropertiesSpecifiedOnly)
                 setFormat(text_edit, beginning_index, ending_index - beginning_index, fmt)
 
             return current_index
@@ -185,7 +189,9 @@ def highlightSyntax(text_edit: QtWidgets.QTextEdit, text: str, ast: Node, p_curr
             ending_index = current_index
 
             fmt = QtGui.QTextCharFormat()
-            fmt.setFont(QtGui.QFont("monospace"), QtGui.QTextCharFormat.FontPropertiesInheritanceBehavior.FontPropertiesSpecifiedOnly)
+            font = QtGui.QFont("monospace")
+            font.setStyleHint(QtGui.QFont.Monospace)
+            fmt.setFont(font, QtGui.QTextCharFormat.FontPropertiesInheritanceBehavior.FontPropertiesSpecifiedOnly)
             setFormat(text_edit, beginning_index, ending_index - beginning_index, fmt)
 
             return current_index

@@ -17,7 +17,7 @@ So what is it for then? It aims - first and foremost - to serve as a *learning o
     - XML
     - LaTeX
 - full [CommonMark](https://commonmark.org/) support (current status: 355 of 652 tests passing 😐)
-- Syntax highlighting in the text editing field
+- Syntax highlighting in the text editing field **(✓ DONE: `86329ed`)**
 - Synchronized scrolling between the editing & preview pane
 
 ## Installation
